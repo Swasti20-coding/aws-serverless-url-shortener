@@ -6,7 +6,14 @@ Globals:
   Function:
     Timeout: 10
 
+  Api:
+    Cors:
+      AllowMethods: "'GET,POST,OPTIONS'"
+      AllowHeaders: "'Content-Type'"
+      AllowOrigin: "'*'"
+
 Resources:
+
   HelloWorldFunction:
     Type: AWS::Serverless::Function
     Properties:
@@ -31,7 +38,61 @@ Resources:
             Path: /shorten
             Method: post
 
+  RedirectFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: redirect/
+      Handler: app.lambda_handler
+      Runtime: python3.14
+
+      Environment:
+        Variables:
+          TABLE_NAME: UrlMappings
+
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: UrlMappings
+
+        - Statement:
+            - Effect: Allow
+              Action:
+                - sqs:SendMessage
+              Resource: arn:aws:sqs:ap-south-1:387512138365:ClickAnalyticsQueue
+
+      Events:
+        RedirectApi:
+          Type: Api
+          Properties:
+            Path: /{shortCode}
+            Method: get
+
+  AnalyticsFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: analytics/
+      Handler: app.lambda_handler
+      Runtime: python3.14
+
+      Environment:
+        Variables:
+          TABLE_NAME: UrlMappings
+
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: UrlMappings
+
+        - S3CrudPolicy:
+            BucketName: swasti-url-analytics-2026
+
+      Events:
+        ClickQueue:
+          Type: SQS
+          Properties:
+            Queue: arn:aws:sqs:ap-south-1:387512138365:ClickAnalyticsQueue
+            BatchSize: 1
+
 Outputs:
+
   ShortenApi:
     Description: API Gateway endpoint URL
     Value: !Sub "https://${ServerlessRestApi}.execute-api.${AWS::Region}.${AWS::URLSuffix}/Prod/shorten/"
@@ -39,3 +100,11 @@ Outputs:
   HelloWorldFunction:
     Description: Lambda Function ARN
     Value: !GetAtt HelloWorldFunction.Arn
+
+  RedirectFunction:
+    Description: Redirect Lambda Function ARN
+    Value: !GetAtt RedirectFunction.Arn
+
+  AnalyticsFunction:
+    Description: Analytics Lambda Function ARN
+    Value: !GetAtt AnalyticsFunction.Arn

@@ -242,3 +242,24 @@ $RECYCLE.BIN/
 */build/*
 
 # End of https://www.gitignore.io/api/osx,linux,python,windows,pycharm,visualstudiocode
+
+# AWS SAM build artifacts
+.aws-sam/
+
+# React dependencies
+url-shortener-frontend/node_modules/
+
+# React production build
+url-shortener-frontend/build/
+
+# AWS CLI credentials (if accidentally copied)
+.aws/
+
+# SAM configuration (optional)
+samconfig.toml
+
+# Logs
+*.log
+
+# OS files
+*.tmp

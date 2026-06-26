@@ -2,7 +2,6 @@ import json
 import boto3
 import random
 import string
-
 import os
 
 TABLE_NAME = os.environ["TABLE_NAME"]
@@ -17,6 +16,7 @@ def generate_short_code(length=6):
 
 
 def lambda_handler(event, context):
+
     body = json.loads(event.get('body', '{}'))
 
     long_url = body.get('url')
@@ -24,7 +24,14 @@ def lambda_handler(event, context):
     if not long_url:
         return {
             "statusCode": 400,
-            "body": json.dumps({"error": "URL is required"})
+            "headers": {
+                "Access-Control-Allow-Origin": "*",
+                "Access-Control-Allow-Headers": "*",
+                "Access-Control-Allow-Methods": "GET,POST,OPTIONS"
+            },
+            "body": json.dumps({
+                "error": "URL is required"
+            })
         }
 
     short_code = generate_short_code()
@@ -39,8 +46,13 @@ def lambda_handler(event, context):
 
     return {
         "statusCode": 200,
+        "headers": {
+            "Access-Control-Allow-Origin": "*",
+            "Access-Control-Allow-Headers": "*",
+            "Access-Control-Allow-Methods": "GET,POST,OPTIONS"
+        },
         "body": json.dumps({
             "short_code": short_code,
-            "short_url": f"https://your-domain/{short_code}"
+            "short_url": f"https://i67u8mzkhj.execute-api.ap-south-1.amazonaws.com/Prod/{short_code}"
         })
     }
