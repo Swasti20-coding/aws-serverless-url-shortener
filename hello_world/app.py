@@ -17,9 +17,9 @@ def generate_short_code(length=6):
 
 def lambda_handler(event, context):
 
-    body = json.loads(event.get('body', '{}'))
+    body = json.loads(event.get("body", "{}"))
 
-    long_url = body.get('url')
+    long_url = body.get("url")
 
     if not long_url:
         return {
@@ -36,11 +36,28 @@ def lambda_handler(event, context):
 
     short_code = generate_short_code()
 
+    # Default values
+    user_id = None
+    email = None
+
+    # Read Cognito claims if API Gateway Authorizer is enabled
+    try:
+        claims = event["requestContext"]["authorizer"]["claims"]
+
+        user_id = claims.get("sub")
+        email = claims.get("email")
+
+    except Exception:
+        # API still public or authorizer not configured
+        pass
+
     table.put_item(
         Item={
             "short_code": short_code,
             "long_url": long_url,
-            "clicks": 0
+            "clicks": 0,
+            "user_id": user_id,
+            "email": email
         }
     )
 
