@@ -4,7 +4,7 @@ import {loginUser} from "../services/auth"
 import {toast} from "react-toastify"
 import {FaEye, FaEyeSlash} from "react-icons/fa"
 
-function Login({onSignup, onLoginSuccess}) {
+function Login({onSignup, onForgotPassword, onLoginSuccess}) {
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
   const [loading, setLoading] = useState(false)
@@ -64,6 +64,9 @@ function Login({onSignup, onLoginSuccess}) {
             placeholder="Enter Email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") handleLogin()
+            }}
           />
 
           <span className="input-label">Password</span>
@@ -88,7 +91,12 @@ function Login({onSignup, onLoginSuccess}) {
               {showPassword ? <FaEyeSlash /> : <FaEye />}
             </button>
           </div>
-
+          <p
+            className="forgot-password"
+            onClick={onForgotPassword}
+          >
+            Forgot Password?
+          </p>
           <button
             className="auth-btn"
             onClick={handleLogin}

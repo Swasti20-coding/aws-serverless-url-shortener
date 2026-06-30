@@ -1,8 +1,16 @@
-import React, {useState, useEffect} from "react"
+import React, {useState, useEffect, useRef} from "react"
 import "../App.css"
 import {logoutUser, getToken, getUser} from "../services/auth"
 import {toast} from "react-toastify"
-import {FaUserCircle, FaSignOutAlt, FaCopy} from "react-icons/fa"
+import QRCode from "react-qr-code"
+import {
+  FaChevronDown,
+  FaEnvelope,
+  FaSignOutAlt,
+  FaCopy,
+  FaCheckCircle,
+  FaGlobeAsia,
+} from "react-icons/fa"
 
 function Dashboard() {
   const [url, setUrl] = useState("")
@@ -10,15 +18,33 @@ function Dashboard() {
   const [copied, setCopied] = useState(false)
   const [loading, setLoading] = useState(false)
   const [user, setUser] = useState(null)
+  const [showMenu, setShowMenu] = useState(false)
+  const menuRef = useRef(null)
 
   useEffect(() => {
     loadUser()
   }, [])
 
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (menuRef.current && !menuRef.current.contains(event.target)) {
+        setShowMenu(false)
+      }
+    }
+
+    document.addEventListener("mousedown", handleClickOutside)
+
+    return () => document.removeEventListener("mousedown", handleClickOutside)
+  }, [])
+
   const loadUser = async () => {
     try {
       const currentUser = await getUser()
-      setUser(currentUser)
+
+      setUser({
+        username: currentUser.username,
+        email: currentUser.signInDetails?.loginId || currentUser.username,
+      })
     } catch (err) {
       console.error(err)
     }
@@ -39,7 +65,7 @@ function Dashboard() {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`
+            Authorization: `Bearer ${token}`,
           },
           body: JSON.stringify({
             url,
@@ -66,6 +92,10 @@ function Dashboard() {
     setTimeout(() => {
       setCopied(false)
     }, 2000)
+  }
+  const copyEmail = async () => {
+    await navigator.clipboard.writeText(user.email)
+    toast.success("Email copied")
   }
 
   const handleLogout = async () => {
@@ -129,26 +159,70 @@ function Dashboard() {
           <span className="topbar-product">Cloud Engineering</span>
         </div>
 
-        <div className="user-section">
-          <div className="user-info">
-            <div className="avatar">
-              {user?.username ? user.username.charAt(0).toUpperCase() : "U"}
+        <div
+          className="user-dropdown"
+          ref={menuRef}
+        >
+          <div
+            className="user-info"
+            onClick={() => setShowMenu(!showMenu)}
+          >
+            <div className="avatar">{user?.email ? user.email.charAt(0).toUpperCase() : "U"}</div>
+
+            <div className="user-details">
+              <div className="user-status">Signed in as</div>
+
+              <div className="user-email">{user?.email || "Loading..."}</div>
             </div>
 
-            <div>
-              <div className="user-name">{user?.username || "User"}</div>
-
-              <div className="user-status">Authenticated User</div>
-            </div>
+            <FaChevronDown className={`dropdown-arrow ${showMenu ? "rotate" : ""}`} />
           </div>
 
-          <button
-            className="logout-btn"
-            onClick={handleLogout}
-          >
-            <FaSignOutAlt />
-            Logout
-          </button>
+          {showMenu && (
+            <div className="dropdown-menu">
+              <div className="dropdown-header">
+                <div className="avatar small-avatar">
+                  {user?.email ? user.email.charAt(0).toUpperCase() : "U"}
+                </div>
+
+                <div>
+                  <div className="dropdown-title">Signed in</div>
+
+                  <div className="dropdown-email">{user?.email}</div>
+                </div>
+              </div>
+
+              <div className="dropdown-item verified">
+                <FaCheckCircle />
+
+                <span>Email Verified</span>
+              </div>
+
+              <div
+                className="dropdown-item"
+                onClick={copyEmail}
+              >
+                <FaCopy />
+
+                <span>Copy Email</span>
+              </div>
+
+              <div className="dropdown-item">
+                <FaGlobeAsia />
+
+                <span>AWS Region : ap-south-1</span>
+              </div>
+
+              <div
+                className="dropdown-item logout"
+                onClick={handleLogout}
+              >
+                <FaSignOutAlt />
+
+                <span>Logout</span>
+              </div>
+            </div>
+          )}
         </div>
       </div>
 
@@ -213,6 +287,21 @@ function Dashboard() {
               >
                 {copied ? "Copied" : "Copy"}
               </button>
+            </div>
+
+            <div className="qr-section">
+              <h4>Scan QR Code</h4>
+
+              <div className="qr-box">
+                <QRCode
+                  value={shortUrl}
+                  size={150}
+                  bgColor="#ffffff"
+                  fgColor="#000000"
+                />
+              </div>
+
+              <p className="qr-text">Scan this QR code to open the shortened URL</p>
             </div>
           </div>
         )}

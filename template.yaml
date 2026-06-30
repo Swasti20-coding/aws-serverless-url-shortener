@@ -14,6 +14,7 @@ Globals:
 
     Auth:
       DefaultAuthorizer: CognitoAuthorizer
+      AddDefaultAuthorizerToCorsPreflight: false
 
       Authorizers:
         CognitoAuthorizer:
