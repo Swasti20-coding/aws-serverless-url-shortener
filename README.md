@@ -347,13 +347,9 @@ aws cloudfront create-invalidation   --distribution-id <your-distribution-id>   
 
 ## 📸 Screenshots
 
-### System Architecture Diagram
 
-<p align="center">
-  <img src="assets/image_27.png" alt="System Architecture Diagram" width="900">
-</p>
 
----
+
 
 ### Figure 1. User Authentication Interface
 
