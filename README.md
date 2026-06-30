@@ -508,7 +508,7 @@ Amazon DynamoDB stores URL mappings, including generated short codes, original U
 </p>
 
 <p align="center">
-  <img src="assets/image_25.png" alt="AWS X-Ray" width="800">
+  <img src="assets/image_26.png" alt="AWS X-Ray" width="800">
 </p>
 
 ---
@@ -516,7 +516,7 @@ Amazon DynamoDB stores URL mappings, including generated short codes, original U
 ### CloudWatch Dashboard (instead of QuickSight)
 
 <p align="center">
-  <img src="assets/image_26.png" alt="CloudWatch Dashboard" width="800">
+  <img src="assets/image_25.png" alt="CloudWatch Dashboard" width="800">
 </p>
 
 Amazon CloudWatch Dashboard provides real-time visualization of application metrics including Lambda invocations, execution duration, API request count, latency, backend processing time, and error rates. It serves as the operational monitoring dashboard for the serverless application.
