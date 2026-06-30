@@ -55,38 +55,30 @@
 
 The **AWS Serverless URL Shortener** is a cloud-native web application designed to demonstrate the implementation of a scalable, secure, and cost-efficient serverless architecture using **Amazon Web Services (AWS)**.
 
-The platform enables authenticated users to:
+The platform enables authenticated users to generate shortened URLs, seamlessly redirect users to the original destination, and collect click analytics through an event-driven processing pipeline.
 
-- 🔐 Register and log in securely
-- 🔗 Generate shortened URLs
-- 🔄 Redirect users to original URLs
-- 📊 Collect click analytics
-- 📈 Monitor application health
-- 🧮 Perform SQL analytics on click events
+The solution is built using AWS Lambda for serverless compute, Amazon API Gateway for RESTful API management, Amazon Cognito for user authentication, Amazon DynamoDB for URL storage, Amazon S3 and Amazon CloudFront for frontend hosting and content delivery, Amazon SQS for asynchronous event processing, Amazon Athena for analytical querying, and Amazon CloudWatch for monitoring and operational insights.
 
-The solution is built entirely using **managed AWS services**, eliminating the need to provision or maintain servers. It follows the **AWS Well-Architected Framework** principles, ensuring operational excellence, security, reliability, performance efficiency, cost optimization, and sustainability.
+By leveraging fully managed AWS services, the application achieves automatic scalability, high availability, enhanced security, and reduced operational overhead while eliminating the need to provision or maintain servers. The project demonstrates modern serverless application development, infrastructure automation using AWS SAM, and cloud-native design principles aligned with industry best practices.
 
 ---
 
 ## ✨ Key Features
 
-| Feature | Description |
-|---------|-------------|
-| 🔐 **Secure Authentication** | User registration and login via Amazon Cognito with JWT token-based security |
-| 🔗 **URL Shortening** | Automatic unique short-code generation for any valid URL |
-| 🔄 **Instant Redirection** | High-performance HTTP 302 redirects to original URLs |
-| 📊 **Event-Driven Analytics** | Click events captured via Amazon SQS and processed asynchronously |
-| 💾 **Persistent Storage** | URL mappings stored in Amazon DynamoDB with automatic scaling |
-| ⚡ **Fully Serverless** | Zero server management with AWS Lambda and managed services |
-| 🌐 **React Frontend** | Modern responsive UI hosted on Amazon S3 |
-| 🌍 **Global CDN** | Content delivery via Amazon CloudFront for low-latency access |
-| 🏗️ **Infrastructure as Code** | Complete AWS SAM / CloudFormation templates |
-| 🧮 **SQL Analytics** | Athena queries over analytics data stored in S3 |
-| 📈 **Monitoring** | CloudWatch logs, metrics, and alarms |
-| 🔍 **Distributed Tracing** | AWS X-Ray for end-to-end request tracing |
-| 📈 **Auto Scaling** | Automatic scaling based on demand with no manual intervention |
-| 🔄 **High Availability** | Multi-AZ deployment for resilience |
-| 💰 **Cost Optimized** | Pay-per-use pricing model |
+- **Secure User Authentication** using Amazon Cognito.
+- **URL Shortening** with automatic generation of unique short URLs.
+- **Instant URL Redirection** to the original destination using serverless APIs.
+- **Event-Driven Click Analytics** powered by Amazon SQS and AWS Lambda.
+- **Persistent URL Storage** using Amazon DynamoDB.
+- **Serverless Backend** built with AWS Lambda and Amazon API Gateway.
+- **Static React Frontend Hosting** using Amazon S3 and Amazon CloudFront.
+- **Global Content Delivery** through Amazon CloudFront for low-latency access.
+- **Infrastructure as Code (IaC)** using AWS SAM and AWS CloudFormation.
+- **SQL-Based Analytics** using Amazon Athena.
+- **Application Monitoring and Logging** using Amazon CloudWatch.
+- **Distributed Request Tracing** using AWS X-Ray.
+- **Automatic Scalability and High Availability** through fully managed AWS services.
+- **Cost-Optimized Serverless Architecture** with minimal operational overhead.
 
 ---
 
@@ -116,112 +108,57 @@ The application follows a **fully serverless event-driven architecture** deploye
 
 ## 🔄 Architecture Workflow
 
+The AWS Serverless URL Shortener follows a cloud-native, event-driven architecture built entirely on managed AWS services. The complete workflow is described below:
+
 ### 1. User Access
 
-The user accesses the React application hosted on **Amazon S3** and distributed globally through **Amazon CloudFront**.
-
-```
-User → CloudFront → S3 (React App)
-```
+The user accesses the React-based web application, which is hosted on **Amazon S3** and globally distributed through **Amazon CloudFront** for improved performance and reduced latency.
 
 ### 2. User Authentication
 
-**Amazon Cognito** authenticates users and returns a JWT token used for securing API requests.
-
-```
-User → Cognito → JWT Token → API Gateway
-```
+Users securely register and log in using **Amazon Cognito**. After successful authentication, Cognito issues a JSON Web Token (JWT), which is used to authorize subsequent API requests.
 
 ### 3. URL Shortening
 
-The user submits a long URL. The request flows through the system:
-
-```
-React Frontend
-    ↓
-API Gateway (POST /shorten)
-    ↓
-Lambda (URL Shortener)
-    ↓
-DynamoDB (Store mapping)
-```
-
-The Lambda function:
-- ✅ Validates the input URL
-- ✅ Generates a unique shortcode
-- ✅ Stores the mapping in DynamoDB
-- ✅ Returns the shortened URL
+Authenticated users submit a long URL through the frontend. The request is routed via **Amazon API Gateway** to an **AWS Lambda** function, which validates the input, generates a unique short code, and stores the URL mapping in **Amazon DynamoDB**.
 
 ### 4. Short URL Generation
 
-The generated shortened URL is returned immediately to the frontend and displayed to the user.
+The Lambda function returns the generated short URL to the frontend, allowing users to copy and share the shortened link instantly.
 
 ### 5. URL Redirection
 
-When users visit a shortened URL:
-
-```
-Browser (GET /{shortcode})
-    ↓
-API Gateway
-    ↓
-Redirect Lambda
-    ↓
-DynamoDB (Lookup original URL)
-    ↓
-HTTP 302 Redirect → Original URL
-```
+When a shortened URL is accessed, the request is processed by **Amazon API Gateway**, which invokes the Redirect Lambda function. The function retrieves the corresponding original URL from **Amazon DynamoDB** and redirects the user using an HTTP 302 response.
 
 ### 6. Event-Driven Analytics
 
-Each redirect publishes a click event into **Amazon SQS**:
+During every successful redirection, the Redirect Lambda asynchronously publishes a click event to **Amazon SQS**. An Analytics Lambda function consumes these events, processes the click information, and stores analytics data in **Amazon S3** for further analysis.
 
-```
-Redirect Lambda → SQS Queue → Analytics Lambda → S3 (Analytics Data)
-```
+### 7. Analytics and Monitoring
 
-### 7. Analytics Querying
+The stored analytics data can be queried using **Amazon Athena**, while operational metrics, application logs, performance statistics, and system health are monitored through **Amazon CloudWatch** and **AWS X-Ray**.
 
-**Amazon Athena** performs SQL queries over analytics data stored in S3:
+### 8. Infrastructure Management
 
-```sql
-SELECT shortcode, COUNT(*) as clicks
-FROM analytics_data
-GROUP BY shortcode
-ORDER BY clicks DESC;
-```
-
-### 8. Monitoring & Observability
-
-- **CloudWatch** collects logs, metrics, and alarms
-- **AWS X-Ray** provides distributed tracing for every request
-
-### 9. Infrastructure Provisioning
-
-All cloud resources are provisioned using:
-
-- **AWS SAM** — Serverless Application Model
-- **AWS CloudFormation** — Infrastructure as Code
-
-Enabling repeatable, version-controlled deployments.
+The complete cloud infrastructure is provisioned and managed using **AWS SAM** and **AWS CloudFormation**, enabling automated deployment, reproducibility, and simplified infrastructure management.
 
 ---
 
 ## ☁️ AWS Services Used
 
-| Service | Purpose | Badge |
-|---------|---------|-------|
-| **Amazon API Gateway** | REST API endpoints for frontend communication | ![API Gateway](https://img.shields.io/badge/API-Gateway-6A1B9A) |
-| **AWS Lambda** | Serverless compute for URL shortening, redirection, and analytics | ![Lambda](https://img.shields.io/badge/AWS-Lambda-FF9900) |
-| **Amazon DynamoDB** | NoSQL database for URL mappings and metadata | ![DynamoDB](https://img.shields.io/badge/Amazon-DynamoDB-4053D6) |
-| **Amazon Cognito** | User authentication, registration, and JWT token management | ![Cognito](https://img.shields.io/badge/Amazon-Cognito-5A29E4) |
-| **Amazon S3** | Static website hosting and analytics data lake | ![S3](https://img.shields.io/badge/Amazon-S3-569A31) |
-| **Amazon CloudFront** | Global CDN for low-latency content delivery | ![CloudFront](https://img.shields.io/badge/Amazon-CloudFront-8C4FFF) |
-| **Amazon SQS** | Message queue for decoupled click analytics | ![SQS](https://img.shields.io/badge/Amazon-SQS-FF4F8B) |
-| **Amazon Athena** | Serverless SQL analytics over S3 data | ![Athena](https://img.shields.io/badge/Amazon-Athena-9B59B6) |
-| **Amazon CloudWatch** | Logs, metrics, alarms, and dashboards | ![CloudWatch](https://img.shields.io/badge/Amazon-CloudWatch-FF4F8B) |
-| **AWS X-Ray** | Distributed tracing and service maps | ![X-Ray](https://img.shields.io/badge/AWS-X--Ray-8C4FFF) |
-| **AWS SAM** | Infrastructure as Code and deployment automation | ![SAM](https://img.shields.io/badge/AWS-SAM-FF9900) |
+| Service | Purpose |
+|---------|---------|
+| **Amazon API Gateway** | REST API endpoints for frontend communication |
+| **AWS Lambda** | Serverless compute for URL shortening, redirection, and analytics |
+| **Amazon DynamoDB** | NoSQL database for URL mappings and metadata |
+| **Amazon Cognito** | User authentication, registration, and JWT token management |
+| **Amazon S3** | Static website hosting and analytics data lake |
+| **Amazon CloudFront** | Global CDN for low-latency content delivery |
+| **Amazon SQS** | Message queue for decoupled click analytics |
+| **Amazon Athena** | Serverless SQL analytics over S3 data |
+| **Amazon CloudWatch** | Logs, metrics, alarms, and dashboards |
+| **AWS X-Ray** | Distributed tracing and service maps |
+| **AWS SAM** | Infrastructure as Code and deployment automation |
 
 ---
 
@@ -230,92 +167,95 @@ Enabling repeatable, version-controlled deployments.
 ```text
 AWS-Serverless-URL-Shortener/
 │
-├── 📂 analytics/
-│   ├── app.py                 # Analytics Lambda function
-│   └── requirements.txt       # Python dependencies
+├── analytics/                 # Analytics Lambda Function
+│   ├── app.py
+│   └── requirements.txt
 │
-├── 📂 hello_world/
-│   ├── app.py                 # URL Shortener Lambda function
-│   └── requirements.txt       # Python dependencies
+├── hello_world/               # URL Shortening Lambda Function
+│   ├── app.py
+│   └── requirements.txt
 │
-├── 📂 redirect/
-│   ├── app.py                 # Redirect Lambda function
-│   └── requirements.txt       # Python dependencies
+├── redirect/                  # URL Redirection Lambda Function
+│   ├── app.py
+│   └── requirements.txt
 │
-├── 📂 url-shortener-frontend/
-│   ├── 📂 public/             # Static assets
-│   ├── 📂 src/                # React components and logic
-│   ├── package.json           # Node.js dependencies
-│   └── package-lock.json      # Locked dependency versions
+├── url-shortener-frontend/    # React Frontend Application
+│   ├── public/
+│   ├── src/
+│   ├── package.json
+│   └── package-lock.json
 │
-├── 📂 events/                 # Sample event payloads for testing
+├── events/                    # Sample API events
 │
-├── 📂 assets/                 # Screenshots and documentation images
-│   ├── image_1.png            # Cover Page
-│   ├── image_2.png            # Architecture Diagram
-│   ├── image_3.png            # Login Page
-│   ├── image_4.png            # URL Shortener Dashboard
-│   ├── image_5.png            # Lambda Functions
-│   ├── image_6.png            # API Gateway
-│   ├── image_7.png            # DynamoDB Table
-│   ├── image_8.png            # SQS Queue
-│   ├── image_9.png            # S3 Bucket
-│   ├── image_10.png           # Athena Query Editor
-│   ├── image_11.png           # Cognito User Pool
-│   ├── image_12.png           # CloudFront Distribution
-│   ├── image_13.png           # CloudWatch Dashboard
-│   ├── image_14.png           # X-Ray Service Map
-│   ├── image_15.png           # CloudWatch Dashboard Metrics
-│   ├── image_16.png           # Lambda Monitoring
-│   ├── image_17.png           # API Metrics
-│   ├── image_18.png           # Redirect Function
-│   ├── image_19.png           # Analytics Lambda
-│   ├── image_20.png           # URL Table Data
-│   ├── image_21.png           # S3 Analytics Data
-│   ├── image_22.png           # Athena Results
-│   ├── image_23.png           # Cognito Authentication
-│   ├── image_24.png           # CloudFront Cache
-│   ├── image_25.png           # CloudWatch Logs
-│   ├── image_26.png           # X-Ray Trace Details
-│   └── image_27.png           # System Flowchart
-│
-├── template.yaml              # AWS SAM template (Infrastructure as Code)
-├── samconfig.toml             # SAM deployment configuration
-├── README.md                  # Project documentation
-└── .gitignore                 # Git ignore rules
+├── template.yaml              # AWS SAM Infrastructure Template
+├── samconfig.toml             # SAM Deployment Configuration
+├── README.md                  # Project Documentation
+└── .gitignore                 # Git Ignore Rules
 ```
+
+- **analytics/** — Used to process click events received from Amazon SQS and store analytics data in Amazon S3 for reporting and analysis.
+- **hello_world/** — Used to implement the URL shortening service by validating user input, generating unique short codes, and storing URL mappings in Amazon DynamoDB.
+- **redirect/** — Used to retrieve the original URL associated with a short code, update click statistics, and redirect users to the destination website.
+- **url-shortener-frontend/** — Used to host the React-based frontend application, providing the user interface for authentication, URL shortening, and URL management.
+- **events/** — Used to store sample event payloads for local testing and debugging of AWS Lambda functions.
+- **template.yaml** — Used to define the complete serverless infrastructure, including AWS Lambda, API Gateway, DynamoDB, SQS, IAM policies, and other AWS resources using AWS SAM.
+- **samconfig.toml** — Used to store AWS SAM deployment configurations, simplifying the build and deployment process.
+- **README.md** — Used to provide project documentation, including the architecture, setup instructions, deployment steps, and usage guidelines.
+- **.gitignore** — Used to specify files and directories that should be excluded from version control to maintain a clean repository.
+
+---
+
+## 🔄 Workflow
+
+1. **User Authentication** — Users securely register and log in through **Amazon Cognito**, which authenticates requests using JWT tokens.
+
+2. **URL Shortening** — Authenticated users submit a long URL via the React frontend. The request is routed through **Amazon API Gateway** to an **AWS Lambda** function, which validates the URL, generates a unique short code, and stores the mapping in **Amazon DynamoDB**.
+
+3. **Short URL Generation** — The generated short URL is returned to the frontend, allowing users to copy and share it instantly.
+
+4. **URL Redirection** — When a shortened URL is accessed, **API Gateway** invokes the Redirect Lambda function, which retrieves the original URL from **Amazon DynamoDB** and redirects the user using an HTTP 302 response.
+
+5. **Click Analytics Processing** — During every successful redirection, the Redirect Lambda publishes a click event to **Amazon SQS**. The Analytics Lambda processes these events asynchronously and stores analytics data in **Amazon S3**.
+
+6. **Analytics and Monitoring** — Analytics data stored in Amazon S3 can be queried using **Amazon Athena**, while **Amazon CloudWatch** and **AWS X-Ray** provide application monitoring, logging, and performance insights.
+
+7. **Infrastructure Deployment** — The complete serverless infrastructure is provisioned and managed using **AWS SAM** and **AWS CloudFormation**, enabling automated deployment and simplified infrastructure management.
 
 ---
 
 ## 🛠️ Technology Stack
 
 ### Frontend
-| Technology | Version | Purpose |
-|------------|---------|---------|
-| React | ^18.x | UI framework |
-| HTML5 | — | Semantic markup |
-| CSS3 | — | Styling and layout |
-| JavaScript (ES6+) | — | Application logic |
+
+- React
+- HTML5
+- CSS3
+- JavaScript
 
 ### Backend
-| Technology | Version | Purpose |
-|------------|---------|---------|
-| Python | 3.11+ | Lambda runtime |
-| AWS Lambda | — | Serverless compute |
-| REST APIs | — | API Gateway integration |
+
+- Python
+- AWS Lambda
+- REST APIs
 
 ### Database
-| Technology | Purpose |
-|------------|---------|
-| Amazon DynamoDB | URL mappings and metadata storage |
-| Amazon S3 | Analytics data lake |
 
-### DevOps & Infrastructure
-| Technology | Purpose |
-|------------|---------|
-| AWS SAM | Infrastructure as Code |
-| AWS CloudFormation | Resource provisioning |
-| GitHub Actions | CI/CD (optional) |
+- Amazon DynamoDB
+
+### Cloud
+
+- Amazon API Gateway
+- AWS Lambda
+- Amazon DynamoDB
+- Amazon S3
+- Amazon CloudFront
+- Amazon Cognito
+- Amazon SQS
+- Amazon Athena
+- Amazon CloudWatch
+- AWS X-Ray
+- AWS SAM (Infrastructure as Code)
+- Amazon CloudWatch Dashboard: Amazon CloudWatch Dashboard provides real-time visualization of application metrics including Lambda invocations, execution duration, API request count, latency, backend processing time, and error rates. It serves as the operational monitoring dashboard for the serverless application.
 
 ---
 
@@ -323,387 +263,323 @@ AWS-Serverless-URL-Shortener/
 
 Before deploying this project, ensure you have the following installed and configured:
 
-- [AWS CLI](https://aws.amazon.com/cli/) — configured with appropriate credentials
-- [AWS SAM CLI](https://docs.aws.amazon.com/serverless-application-model/latest/developerguide/install-sam-cli.html) — for building and deploying
-- [Python 3.11+](https://www.python.org/downloads/) — for Lambda development
-- [Node.js 18+](https://nodejs.org/) — for frontend development
-- [npm](https://www.npmjs.com/) — for frontend dependency management
-- An AWS account with appropriate permissions
+- AWS CLI configured with valid credentials
+- AWS SAM CLI installed
+- Python 3.x
+- Node.js and npm
+- Git
 
 ---
 
 ## 🚀 Deployment
 
-### Step 1: Clone the Repository
+The application is deployed using **AWS Serverless Application Model (AWS SAM)** and follows a fully serverless deployment workflow.
+
+### Clone the Repository
 
 ```bash
-git clone https://github.com/your-username/AWS-Serverless-URL-Shortener.git
+git clone <repository-url>
 cd AWS-Serverless-URL-Shortener
 ```
 
-### Step 2: Build the Application
+### Build the Serverless Application
 
 ```bash
 sam build
 ```
 
-This command compiles the Lambda functions and prepares the deployment package.
+### Deploy to AWS
 
-### Step 3: Deploy with Guided Configuration
+For the first deployment:
 
 ```bash
 sam deploy --guided
 ```
 
-You will be prompted to configure:
+For subsequent deployments:
 
-| Parameter | Description | Example |
-|-------------|-------------|---------|
-| Stack Name | CloudFormation stack name | `url-shortener-stack` |
-| AWS Region | Deployment region | `us-east-1` |
-| Confirm changes | Review before deployment | `Y` |
-| Allow SAM CLI IAM role creation | Grant IAM permissions | `Y` |
-| Save arguments | Store for future deployments | `Y` |
+```bash
+sam deploy
+```
 
-### Step 4: Deploy the Frontend
+### Frontend Deployment
+
+Navigate to the frontend directory:
 
 ```bash
 cd url-shortener-frontend
-npm install
-npm run build
-aws s3 sync build/ s3://your-frontend-bucket-name --delete
 ```
 
-### Step 5: Configure Cognito
-
-1. Navigate to Amazon Cognito in the AWS Console
-2. Create a new User Pool or use the one created by SAM
-3. Configure the App Client settings
-4. Update the frontend configuration with the Cognito details
-
-### Step 6: Verify Deployment
-
-1. Access the CloudFront distribution URL
-2. Register a new user
-3. Log in and test URL shortening
-4. Verify redirection and analytics
-
-### Step 7: Monitor
+Install dependencies:
 
 ```bash
-# View CloudWatch logs
-sam logs --name URLShortenerFunction --tail
-
-# View X-Ray traces
-aws xray get-service-graph --start-time $(date -d '1 hour ago' +%s) --end-time $(date +%s)
+npm install
 ```
+
+Build the React application:
+
+```bash
+npm run build
+```
+
+Upload the production build to the S3 bucket:
+
+```bash
+aws s3 sync build/ s3://<your-s3-bucket-name> --delete
+```
+
+Invalidate the CloudFront cache:
+
+```bash
+aws cloudfront create-invalidation   --distribution-id <your-distribution-id>   --paths "/*"
+```
+
+### Verify Deployment
+
+- Open the CloudFront URL.
+- Register or log in using Amazon Cognito.
+- Generate a shortened URL.
+- Verify URL redirection.
+- Confirm analytics are processed through Amazon SQS and AWS Lambda.
+- Monitor logs and metrics using Amazon CloudWatch.
 
 ---
 
 ## 📸 Screenshots
 
-### Cover Page
+### System Architecture Diagram
 
 <p align="center">
-  <img src="assets/image_1.png" alt="Cover Page" width="800">
+  <img src="assets/image_27.png" alt="System Architecture Diagram" width="900">
 </p>
 
 ---
 
-### Architecture Diagram
+### Figure 1. User Authentication Interface
 
 <p align="center">
-  <img src="assets/image_2.png" alt="Architecture Diagram" width="800">
+  <img src="assets/image_1.png" alt="User Authentication Interface" width="800">
+</p>
+
+The React-based login interface secured using Amazon Cognito enables authenticated access to the URL shortening platform through JWT-based user authentication.
+
+---
+
+### Figure 2. URL Shortening Dashboard
+
+<p align="center">
+  <img src="assets/image_2.png" alt="URL Shortening Dashboard" width="800">
+</p>
+
+Authenticated users can submit long URLs to generate unique shortened links. The application also displays the generated URL and corresponding QR code for convenient sharing.
+
+---
+
+### Figure 3. AWS Lambda Functions
+
+<p align="center">
+  <img src="assets/image_3.png" alt="AWS Lambda Functions" width="800">
+</p>
+
+AWS Lambda functions implement the core serverless backend, including URL shortening, URL redirection, and click analytics processing without requiring server management.
+
+---
+
+### Amazon API Gateway
+
+<p align="center">
+  <img src="assets/image_4.png" alt="Amazon API Gateway" width="800">
+</p>
+
+<p align="center">
+  <img src="assets/image_5.png" alt="Amazon API Gateway" width="800">
+</p>
+
+Amazon API Gateway exposes secure REST endpoints that route client requests to the appropriate AWS Lambda functions for URL shortening and redirection.
+
+---
+
+### Figure 5. Amazon DynamoDB Table
+
+<p align="center">
+  <img src="assets/image_6.png" alt="Amazon DynamoDB Table" width="800">
+</p>
+
+Amazon DynamoDB stores URL mappings, including generated short codes, original URLs, and click statistics using a fully managed NoSQL database.
+
+---
+
+### Amazon DynamoDB (Additional Views)
+
+<p align="center">
+  <img src="assets/image_7.png" alt="Amazon DynamoDB" width="800">
+</p>
+
+<p align="center">
+  <img src="assets/image_8.png" alt="Amazon DynamoDB" width="800">
+</p>
+
+<p align="center">
+  <img src="assets/image_9.png" alt="Amazon DynamoDB" width="800">
 </p>
 
 ---
 
-### Login Page
+### Amazon SQS
 
 <p align="center">
-  <img src="assets/image_3.png" alt="Login Page" width="800">
+  <img src="assets/image_10.png" alt="Amazon SQS" width="800">
+</p>
+
+<p align="center">
+  <img src="assets/image_11.png" alt="Amazon SQS" width="800">
 </p>
 
 ---
 
-### URL Shortener Dashboard
+### Amazon S3
 
 <p align="center">
-  <img src="assets/image_4.png" alt="URL Shortener Dashboard" width="800">
+  <img src="assets/image_12.png" alt="Amazon S3" width="800">
+</p>
+
+<p align="center">
+  <img src="assets/image_13.png" alt="Amazon S3" width="800">
+</p>
+
+<p align="center">
+  <img src="assets/image_14.png" alt="Amazon S3" width="800">
+</p>
+
+<p align="center">
+  <img src="assets/image_15.png" alt="Amazon S3" width="800">
 </p>
 
 ---
 
-### Lambda Functions
+### Amazon Athena
 
 <p align="center">
-  <img src="assets/image_5.png" alt="Lambda Functions" width="800">
+  <img src="assets/image_16.png" alt="Amazon Athena" width="800">
+</p>
+
+<p align="center">
+  <img src="assets/image_17.png" alt="Amazon Athena" width="800">
 </p>
 
 ---
 
-### API Gateway
+### Amazon Cognito
 
 <p align="center">
-  <img src="assets/image_6.png" alt="API Gateway" width="800">
+  <img src="assets/image_18.png" alt="Amazon Cognito" width="800">
 </p>
 
 ---
 
-### DynamoDB Table
+### Amazon CloudFront
 
 <p align="center">
-  <img src="assets/image_7.png" alt="DynamoDB Table" width="800">
+  <img src="assets/image_19.png" alt="Amazon CloudFront" width="800">
 </p>
 
 ---
 
-### Amazon SQS Queue
+### Amazon CloudWatch
 
 <p align="center">
-  <img src="assets/image_8.png" alt="Amazon SQS" width="800">
+  <img src="assets/image_20.png" alt="Amazon CloudWatch" width="800">
+</p>
+
+<p align="center">
+  <img src="assets/image_21.png" alt="Amazon CloudWatch" width="800">
+</p>
+
+<p align="center">
+  <img src="assets/image_22.png" alt="Amazon CloudWatch" width="800">
 </p>
 
 ---
 
-### Amazon S3 Bucket
+### AWS X-Ray
 
 <p align="center">
-  <img src="assets/image_9.png" alt="Amazon S3" width="800">
+  <img src="assets/image_23.png" alt="AWS X-Ray" width="800">
+</p>
+
+<p align="center">
+  <img src="assets/image_24.png" alt="AWS X-Ray" width="800">
+</p>
+
+<p align="center">
+  <img src="assets/image_25.png" alt="AWS X-Ray" width="800">
 </p>
 
 ---
 
-### Amazon Athena Query Editor
+### CloudWatch Dashboard (instead of QuickSight)
 
 <p align="center">
-  <img src="assets/image_10.png" alt="Amazon Athena" width="800">
+  <img src="assets/image_26.png" alt="CloudWatch Dashboard" width="800">
 </p>
 
----
-
-### Amazon Cognito User Pool
-
-<p align="center">
-  <img src="assets/image_11.png" alt="Amazon Cognito" width="800">
-</p>
-
----
-
-### Amazon CloudFront Distribution
-
-<p align="center">
-  <img src="assets/image_12.png" alt="Amazon CloudFront" width="800">
-</p>
-
----
-
-### Amazon CloudWatch Dashboard
-
-<p align="center">
-  <img src="assets/image_13.png" alt="Amazon CloudWatch" width="800">
-</p>
-
----
-
-### AWS X-Ray Service Map
-
-<p align="center">
-  <img src="assets/image_14.png" alt="AWS X-Ray" width="800">
-</p>
-
----
-
-### CloudWatch Dashboard Metrics
-
-<p align="center">
-  <img src="assets/image_15.png" alt="CloudWatch Metrics" width="800">
-</p>
-
----
-
-### Lambda Monitoring
-
-<p align="center">
-  <img src="assets/image_16.png" alt="Lambda Monitoring" width="800">
-</p>
-
----
-
-### API Metrics
-
-<p align="center">
-  <img src="assets/image_17.png" alt="API Metrics" width="800">
-</p>
-
----
-
-### Redirect Lambda Function
-
-<p align="center">
-  <img src="assets/image_18.png" alt="Redirect Function" width="800">
-</p>
-
----
-
-### Analytics Lambda Function
-
-<p align="center">
-  <img src="assets/image_19.png" alt="Analytics Lambda" width="800">
-</p>
-
----
-
-### DynamoDB URL Table Data
-
-<p align="center">
-  <img src="assets/image_20.png" alt="DynamoDB Data" width="800">
-</p>
-
----
-
-### S3 Analytics Data
-
-<p align="center">
-  <img src="assets/image_21.png" alt="S3 Analytics" width="800">
-</p>
-
----
-
-### Athena Query Results
-
-<p align="center">
-  <img src="assets/image_22.png" alt="Athena Results" width="800">
-</p>
-
----
-
-### Cognito Authentication Flow
-
-<p align="center">
-  <img src="assets/image_23.png" alt="Cognito Authentication" width="800">
-</p>
-
----
-
-### CloudFront Cache Behavior
-
-<p align="center">
-  <img src="assets/image_24.png" alt="CloudFront Cache" width="800">
-</p>
-
----
-
-### CloudWatch Logs
-
-<p align="center">
-  <img src="assets/image_25.png" alt="CloudWatch Logs" width="800">
-</p>
-
----
-
-### X-Ray Trace Details
-
-<p align="center">
-  <img src="assets/image_26.png" alt="X-Ray Traces" width="800">
-</p>
-
----
-
-### System Flowchart
-
-<p align="center">
-  <img src="assets/image_27.png" alt="System Flowchart" width="800">
-</p>
+Amazon CloudWatch Dashboard provides real-time visualization of application metrics including Lambda invocations, execution duration, API request count, latency, backend processing time, and error rates. It serves as the operational monitoring dashboard for the serverless application.
 
 ---
 
 ## 💰 Cost Management Notice
 
-> ⚠️ **Important:** This project uses multiple AWS services that may incur charges. To avoid unexpected costs:
+> ⚠️ **Important:** This project uses AWS cloud services. Some AWS resources may incur charges beyond the AWS Free Tier depending on usage.
 >
-> - Monitor your AWS billing dashboard regularly
-> - Set up billing alerts and budgets
-> - Delete resources when not in use: `sam delete`
-> - Use the AWS Free Tier where eligible
-> - Consider using DynamoDB on-demand capacity for development
-> - Enable S3 lifecycle policies for analytics data
+> After project evaluation, the following resources can be disabled or deleted to avoid unnecessary costs:
+>
+> - Amazon CloudFront Distribution (optional)
+> - Amazon API Gateway
+> - AWS Lambda Functions
+> - Amazon DynamoDB Tables
+> - Amazon SQS Queue
+> - Amazon S3 Buckets
+> - Amazon Cognito User Pool (optional)
+> - Amazon CloudWatch Logs and Dashboards
+> - AWS X-Ray Traces
+>
+> The entire infrastructure can be recreated at any time using the provided AWS SAM template.
 
 ---
 
 ## 🔮 Future Enhancements
 
-- [ ] **Custom Short URLs** — Allow users to define their own shortcodes
-- [ ] **URL Expiration** — Set time-to-live (TTL) for shortened URLs
-- [ ] **Rate Limiting** — Implement throttling per user/API key
-- [ ] **QR Code Generation** — Auto-generate QR codes for each short URL
-- [ ] **Advanced Analytics** — Geographic and device-based click analytics
-- [ ] **URL Preview** — Show destination preview before redirection
-- [ ] **Bulk URL Shortening** — Support batch operations
-- [ ] **API Keys** — Developer API access with rate limits
-- [ ] **Dark Mode** — UI theme toggle
-- [ ] **PWA Support** — Progressive Web App capabilities
-- [ ] **Multi-Region Deployment** — Global availability with DynamoDB Global Tables
-- [ ] **CI/CD Pipeline** — GitHub Actions for automated deployment
+- Amazon Route 53 Hosted Zone
+- QR Code generation for shortened URLs
+- URL expiration based on date or usage limits
+- Custom short URLs
+- QuickSight Dashboard
+- Advanced analytics and reporting
+- Mobile application
+- Multi-region deployment for improved availability and fault tolerance
 
 ---
 
 ## 👥 Team
 
-This project was developed as part of a cloud computing curriculum to demonstrate serverless architecture patterns and AWS best practices.
-
-| Role | Responsibility |
-|------|----------------|
-| **Cloud Architect** | System design and AWS service selection |
-| **Backend Developer** | Lambda functions and API development |
-| **Frontend Developer** | React application and UI/UX |
-| **DevOps Engineer** | Infrastructure as Code and deployment |
+- Swastisikha Pradhan
+- Debiprasad Brahma
+- Nirmalya Kumar Mohanty
+- Sai Shruti Barik
+- Pedenti Nanda Kishore
+- Sumit Kumar Mishra
 
 ---
 
 ## 📄 License
 
-This project is licensed under the **MIT License**.
-
-```
-MIT License
-
-Copyright (c) 2024 AWS Serverless URL Shortener Team
-
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
-
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-SOFTWARE.
-```
+This project was developed as part of the **TCS Capstone Project** for educational purposes.
 
 ---
 
 ## 🙏 Acknowledgement
 
-We would like to express our sincere gratitude to:
-
-- **Amazon Web Services (AWS)** for providing the cloud infrastructure and comprehensive documentation
-- **AWS SAM Team** for the Serverless Application Model that simplifies deployment
-- **The open-source community** for the tools and libraries that made this project possible
-- **Our instructors and mentors** for their guidance throughout this project
-
-Special thanks to the creators of:
-- [React](https://react.dev/)
-- [AWS SAM](https://aws.amazon.com/serverless/sam/)
-- [Boto3](https://boto3.amazonaws.com/v1/documentation/api/latest/index.html)
+This project was developed as part of the **TCS Capstone Program** to demonstrate the design and implementation of a scalable, cloud-native serverless application using Amazon Web Services (AWS). It showcases modern serverless architecture through event-driven processing, Infrastructure as Code (AWS SAM), secure authentication, distributed analytics, monitoring, logging, and global content delivery while following cloud-native design principles and industry best practices.
 
 ---
 
