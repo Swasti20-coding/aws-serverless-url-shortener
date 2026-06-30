@@ -1,127 +1,92 @@
-import React, { useState } from "react";
-import "./App.css";
+import React, {useEffect, useState} from "react"
+import Dashboard from "./components/Dashboard"
+import Login from "./components/Login"
+import Signup from "./components/Signup"
+import Verify from "./components/Verify"
+import ForgotPassword from "./components/ForgotPassword"
+import {getUser} from "./services/auth"
 
 function App() {
-  const [url, setUrl] = useState("");
-  const [shortUrl, setShortUrl] = useState("");
-  const [copied, setCopied] = useState(false);
-  const [loading, setLoading] = useState(false);
+  const [user, setUser] = useState(null)
+  const [loading, setLoading] = useState(true)
 
-  const shortenUrl = async () => {
-    if (!url) return;
+  const [page, setPage] = useState("login")
 
-    setLoading(true);
+  const [email, setEmail] = useState("")
 
+  useEffect(() => {
+    checkUser()
+  }, [])
+
+  const checkUser = async () => {
     try {
-      const response = await fetch(
-        "https://i67u8mzkhj.execute-api.ap-south-1.amazonaws.com/Prod/shorten",
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            url: url,
-          }),
-        }
-      );
-
-      const data = await response.json();
-
-      setShortUrl(
-        `https://i67u8mzkhj.execute-api.ap-south-1.amazonaws.com/Prod/${data.short_code}`
-      );
-    } catch (error) {
-      alert("Error creating short URL");
-      console.error(error);
+      const currentUser = await getUser()
+      setUser(currentUser)
+    } catch (err) {
+      setUser(null)
     }
 
-    setLoading(false);
-  };
+    setLoading(false)
+  }
 
-  const copyToClipboard = () => {
-    navigator.clipboard.writeText(shortUrl);
-    setCopied(true);
-
-    setTimeout(() => {
-      setCopied(false);
-    }, 2000);
-  };
-
-  return (
-    <div className="app">
-      <div className="card">
-
-        <h1>AWS Serverless URL Shortener</h1>
-
-       <p className="subtitle">
-  Serverless • Scalable • Secure • Cost Optimized
-</p>
-
-        <div className="input-group">
-         <input
-  type="text"
-  placeholder="Paste your long URL..."
-  value={url}
-  onChange={(e) => setUrl(e.target.value)}
-  onKeyDown={(e) => {
-    if (e.key === "Enter") {
-      shortenUrl();
-    }
-  }}
-/>
-
-          <button
-  onClick={shortenUrl}
-  disabled={loading}
->
-  {loading ? "Creating..." : "Shorten"}
-</button>
-        </div>
-
-        {shortUrl && (
-          <div className="result-box">
-            <h3>✅ URL Created Successfully</h3>
-
-            <a
-              href={shortUrl}
-              target="_blank"
-              rel="noreferrer"
-            >
-              {shortUrl}
-            </a>
-
-            <button
-              className="copy-btn"
-              onClick={copyToClipboard}
-            >
-              📋 Copy URL
-            </button>
-
-            {copied && (
-              <p className="success">
-                Copied to clipboard!
-              </p>
-            )}
-          </div>
-        )}
-
-        <div className="badges">
-          <span>AWS Lambda</span>
-          <span>API Gateway</span>
-          <span>DynamoDB</span>
-          <span>SQS</span>
-          <span>S3</span>
-          <span>CloudWatch</span>
-        </div>
-
-        <footer>
-          Powered by AWS Serverless Architecture 
-        </footer>
-
+  if (loading) {
+    return (
+      <div
+        style={{
+          background: "#0D0D0D",
+          color: "white",
+          height: "100vh",
+          display: "grid",
+          placeItems: "center",
+          fontSize: "22px",
+          fontWeight: "600",
+        }}
+      >
+        Loading...
       </div>
-    </div>
-  );
+    )
+  }
+
+  if (user) {
+    return <Dashboard />
+  }
+
+  // Verify Screen
+  if (page === "verify") {
+    return (
+      <Verify
+        email={email}
+        onSuccess={() => setPage("login")}
+      />
+    )
+  }
+
+  // Forgot Password Screen
+  if (page === "forgot") {
+    return <ForgotPassword onBack={() => setPage("login")} />
+  }
+
+  // Signup Screen
+  if (page === "signup") {
+    return (
+      <Signup
+        onLogin={() => setPage("login")}
+        onVerify={(userEmail) => {
+          setEmail(userEmail)
+          setPage("verify")
+        }}
+      />
+    )
+  }
+
+  // Login Screen
+  return (
+    <Login
+      onSignup={() => setPage("signup")}
+      onForgotPassword={() => setPage("forgot")}
+      onLoginSuccess={checkUser}
+    />
+  )
 }
 
-export default App;
+export default App

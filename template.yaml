@@ -9,8 +9,16 @@ Globals:
   Api:
     Cors:
       AllowMethods: "'GET,POST,OPTIONS'"
-      AllowHeaders: "'Content-Type'"
+      AllowHeaders: "'Content-Type,Authorization'"
       AllowOrigin: "'*'"
+
+    Auth:
+      DefaultAuthorizer: CognitoAuthorizer
+      AddDefaultAuthorizerToCorsPreflight: false
+
+      Authorizers:
+        CognitoAuthorizer:
+          UserPoolArn: "arn:aws:cognito-idp:ap-south-1:387512138365:userpool/ap-south-1_TeUUz43A6"
 
 Resources:
 
@@ -37,6 +45,8 @@ Resources:
           Properties:
             Path: /shorten
             Method: post
+            Auth:
+              Authorizer: CognitoAuthorizer
 
   RedirectFunction:
     Type: AWS::Serverless::Function
@@ -65,6 +75,8 @@ Resources:
           Properties:
             Path: /{shortCode}
             Method: get
+            Auth:
+              Authorizer: NONE
 
   AnalyticsFunction:
     Type: AWS::Serverless::Function
