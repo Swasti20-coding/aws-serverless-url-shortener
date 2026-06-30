@@ -4,26 +4,26 @@
 <img src="https://img.shields.io/badge/Python-3.x-blue?logo=python&style=for-the-badge" alt="Python">
 <img src="https://img.shields.io/badge/React-Frontend-61DAFB?logo=react&style=for-the-badge" alt="React">
 
-<br><br>
+<br>
 
 <img src="https://img.shields.io/badge/AWS-Lambda-FF9900?logo=awslambda&style=for-the-badge" alt="AWS Lambda">
 <img src="https://img.shields.io/badge/API-Gateway-6A1B9A?logo=amazonapigateway&style=for-the-badge" alt="API Gateway">
 <img src="https://img.shields.io/badge/Amazon-DynamoDB-4053D6?logo=amazondynamodb&style=for-the-badge" alt="DynamoDB">
 
-<br><br>
+<br>
 
 <img src="https://img.shields.io/badge/Amazon-S3-569A31?logo=amazons3&style=for-the-badge" alt="S3">
 <img src="https://img.shields.io/badge/Amazon-CloudFront-8C4FFF?logo=amazoncloudfront&style=for-the-badge" alt="CloudFront">
 <img src="https://img.shields.io/badge/Amazon-Cognito-5A29E4?logo=amazoncognito&style=for-the-badge" alt="Cognito">
 
-<br><br>
+<br>
 
 <img src="https://img.shields.io/badge/Amazon-SQS-FF4F8B?logo=amazonsqs&style=for-the-badge" alt="SQS">
 <img src="https://img.shields.io/badge/Amazon-Athena-9B59B6?logo=amazonaws&style=for-the-badge" alt="Athena">
 <img src="https://img.shields.io/badge/Amazon-CloudWatch-FF4F8B?logo=amazoncloudwatch&style=for-the-badge" alt="CloudWatch">
 <img src="https://img.shields.io/badge/AWS-X--Ray-8C4FFF?logo=amazonaws&style=for-the-badge" alt="X-Ray">
 
-<br><br>
+<br>
 
 </div>
 
